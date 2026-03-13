@@ -63,7 +63,7 @@ export default async function Home() {
 
           {/* Faculties Section */}
           <section className="py-24 bg-background overflow-hidden blueprint-grid opacity-80">
-            <div className="container mx-auto px-6">
+            <div className="container mx-auto px-4 md:px-6">
               <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-16">
                 <div className="max-w-2xl">
                   <div className="inline-flex items-center gap-2 text-secondary font-bold uppercase tracking-widest text-xs mb-4">
@@ -89,7 +89,7 @@ export default async function Home() {
 
           {/* News & Updates Section */}
           <section className="py-24 bg-muted/30">
-            <div className="container mx-auto px-6">
+            <div className="container mx-auto px-4 md:px-6">
               <div className="flex items-center gap-4 mb-12">
                 <div className="h-px grow bg-border" />
                 <div className="flex items-center gap-2 text-primary font-bold uppercase tracking-widest text-xs whitespace-nowrap">
@@ -118,7 +118,7 @@ export default async function Home() {
 
           {/* Events & Admission Info */}
           <section className="py-24 bg-background">
-            <div className="container mx-auto px-6 grid md:grid-cols-12 gap-16 items-start">
+            <div className="container mx-auto px-4 md:px-6 grid md:grid-cols-12 gap-16 items-start">
               
               <div className="md:col-span-7">
                 <div className="flex items-center gap-2 text-secondary font-bold uppercase tracking-widest text-xs mb-6">
