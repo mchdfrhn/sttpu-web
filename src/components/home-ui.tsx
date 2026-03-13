@@ -220,12 +220,7 @@ export function Navbar({
               src="/assets/sttpu-landscape.png"
               alt={globalConfig.site_name || "STTPU Logo"}
               fill
-              className={cn(
-                "object-contain transition-all duration-500",
-                !scrolled
-                  ? "brightness-[1.2] drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]"
-                  : "brightness-100 drop-shadow-none",
-              )}
+              className="object-contain"
               priority
               unoptimized
             />
@@ -240,7 +235,9 @@ export function Navbar({
                 href={link.url}
                 target={link.url.startsWith("http") ? "_blank" : undefined}
                 rel={
-                  link.url.startsWith("http") ? "noopener noreferrer" : undefined
+                  link.url.startsWith("http")
+                    ? "noopener noreferrer"
+                    : undefined
                 }
                 className={cn(
                   "text-sm font-bold tracking-tight transition-all flex items-center gap-1",
@@ -341,9 +338,7 @@ function DesktopSubMenu({
           <Link
             href={sub.url}
             target={sub.url.startsWith("http") ? "_blank" : undefined}
-            rel={
-              sub.url.startsWith("http") ? "noopener noreferrer" : undefined
-            }
+            rel={sub.url.startsWith("http") ? "noopener noreferrer" : undefined}
             className="flex items-center justify-between px-4 py-3 text-sm font-bold text-primary hover:bg-primary/5 hover:text-secondary rounded-xl transition-all"
           >
             {sub.label}
@@ -363,7 +358,7 @@ function MobileSubMenu({
   level,
   activePaths,
   onToggle,
-  onClose
+  onClose,
 }: {
   item: NavLinkItem;
   level: number;
@@ -379,9 +374,7 @@ function MobileSubMenu({
         <Link
           href={item.url}
           target={item.url.startsWith("http") ? "_blank" : undefined}
-          rel={
-            item.url.startsWith("http") ? "noopener noreferrer" : undefined
-          }
+          rel={item.url.startsWith("http") ? "noopener noreferrer" : undefined}
           className={cn(
             level === 0
               ? "text-lg font-semibold py-2 grow"
@@ -395,25 +388,24 @@ function MobileSubMenu({
           {item.label}
         </Link>
         {item.subLinks && (
-          <button
-            onClick={() => onToggle(item.label, level)}
-            className="p-2"
-          >
+          <button onClick={() => onToggle(item.label, level)} className="p-2">
             <ChevronDown
               className={cn(
                 "transition-transform text-muted-foreground",
                 level === 0 ? "w-5 h-5" : "w-4 h-4",
-                isActive ? "rotate-180" : ""
+                isActive ? "rotate-180" : "",
               )}
             />
           </button>
         )}
       </div>
       {item.subLinks && isActive && (
-        <div className={cn(
-          "flex flex-col pl-4 border-l-2 border-primary/10 mb-2 mt-1 gap-1 animate-fade-in",
-          level > 0 && "border-l border-primary/10 ml-2"
-        )}>
+        <div
+          className={cn(
+            "flex flex-col pl-4 border-l-2 border-primary/10 mb-2 mt-1 gap-1 animate-fade-in",
+            level > 0 && "border-l border-primary/10 ml-2",
+          )}
+        >
           {item.subLinks.map((sub) => (
             <MobileSubMenu
               key={sub.label}
@@ -464,8 +456,9 @@ export function Hero({
       className="relative min-h-[90vh] flex items-center pt-20 overflow-hidden"
     >
       {/* Background with Grid & Gradient */}
-      <div className="absolute inset-0 blueprint-grid opacity-30 z-0" />
-      <div className="absolute inset-0 bg-linear-to-br from-primary via-primary/95 to-background z-[-1]" />
+      <div className="absolute inset-0 blueprint-grid opacity-20 z-0" />
+      <div className="absolute inset-0 bg-linear-to-br from-primary via-primary to-background z-[-1]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(255,255,255,0.4),transparent_50%)] z-0" />
 
       {/* Decorative Elements */}
       <div className="absolute top-1/4 -right-20 w-96 h-96 bg-secondary/10 rounded-full blur-[120px] animate-pulse" />
