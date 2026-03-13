@@ -35,6 +35,9 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
+    // Force scroll to top on mount/refresh
+    window.scrollTo(0, 0);
+
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -59,6 +62,10 @@ export function Navbar() {
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         scrolled ? "glass py-3 shadow-lg" : "bg-transparent py-5",
       )}
+      style={scrolled ? { 
+        maskImage: 'linear-gradient(to bottom, black 90%, transparent 100%)',
+        WebkitMaskImage: 'linear-gradient(to bottom, black 90%, transparent 100%)'
+      } : {}}
     >
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 group">
@@ -79,7 +86,7 @@ export function Navbar() {
               )}
             >
               <span className="hidden xs:inline">STT Pekerjaan Umum</span>
-              <span className="xs:hidden">STTPU</span>
+              <span className="xs:hidden">STT Pekerjaan Umum</span>
             </span>
             <span
               className={cn(
@@ -93,18 +100,18 @@ export function Navbar() {
         </Link>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-10">
           {navLinks.map((link) => (
             <Link
               key={link.label}
               href={link.href}
               className={cn(
-                "text-sm font-medium transition-colors hover:text-secondary",
+                "text-sm font-bold tracking-tight transition-all hover:text-secondary",
                 link.highlighted
-                  ? "bg-secondary text-white px-5 py-2 rounded-full hover:bg-secondary/90 shadow-md"
+                  ? "bg-secondary text-primary px-6 py-2 rounded-full hover:bg-white shadow-xl shadow-secondary/20"
                   : scrolled
-                    ? "text-foreground"
-                    : "text-white",
+                    ? "text-primary hover:text-secondary"
+                    : "text-white hover:text-white/80",
               )}
             >
               {link.label}
@@ -437,7 +444,7 @@ export function Footer({
               </div>
               <div>
                 <h2 className="text-3xl font-black leading-none tracking-tighter">
-                  STTPU
+                  STT Pekerjaan Umum
                 </h2>
                 <p className="text-xs text-white/60 uppercase tracking-widest mt-1 font-bold">
                   Jakarta
@@ -450,18 +457,30 @@ export function Footer({
               manusia unggul di bidang infrastruktur dan pekerjaan umum.
             </p>
             <div className="flex flex-col gap-4">
-              <div className="flex items-start gap-3">
-                <MapPin className="text-secondary shrink-0" size={20} />
-                <span className="text-sm text-white/80">
-                  {globalConfig.address_text}
-                </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Phone className="text-secondary shrink-0" size={20} />
-                <span className="text-sm text-white/80">
-                  02138851092 - 02138851109
-                </span>
-              </div>
+              {globalConfig.address_text && (
+                <div className="flex items-start gap-3">
+                  <MapPin className="text-secondary shrink-0" size={20} />
+                  <span className="text-sm text-white/80">
+                    {globalConfig.address_text}
+                  </span>
+                </div>
+              )}
+              {globalConfig.contact_info?.phone && (
+                <div className="flex items-center gap-3">
+                  <Phone className="text-secondary shrink-0" size={20} />
+                  <span className="text-sm text-white/80">
+                    {globalConfig.contact_info.phone}
+                  </span>
+                </div>
+              )}
+              {globalConfig.contact_info?.email && (
+                <div className="flex items-center gap-3 text-white/80 hover:text-secondary transition-colors">
+                  <span className="text-sm font-medium">Email:</span>
+                  <a href={`mailto:${globalConfig.contact_info.email}`} className="text-sm">
+                    {globalConfig.contact_info.email}
+                  </a>
+                </div>
+              )}
             </div>
           </div>
 

@@ -13,6 +13,9 @@ export function HomeAnimations({ children }: { children: React.ReactNode }) {
   const container = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
+    // Force scroll to top on refresh
+    window.scrollTo(0, 0);
+
     // Refresh ScrollTrigger after initial mount/hydration
     window.addEventListener("load", () => {
       ScrollTrigger.refresh();

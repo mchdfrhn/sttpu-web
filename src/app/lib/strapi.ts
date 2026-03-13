@@ -204,6 +204,7 @@ export interface GlobalConfig {
   address_text: string | null;
   maps_url: string | null;
   social_links: SharedLink[];
+  contact_info: SharedContact | null;
 }
 
 export interface AdmissionInfo {
@@ -397,7 +398,7 @@ export const getDocuments = (params?: StrapiQueryParams) =>
 
 export const getGlobalConfig = () =>
   fetchSingle<GlobalConfig>('/global-setting', {
-    populate: { logo: true, favicon: true, social_links: true },
+    populate: { logo: true, favicon: true, social_links: true, contact_info: true },
   });
 
 export const getAdmissionInfo = () =>
