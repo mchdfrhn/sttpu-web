@@ -212,50 +212,23 @@ export function Navbar({
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         scrolled ? "glass py-3 shadow-lg" : "bg-transparent py-5",
       )}
-      style={
-        scrolled
-          ? {
-              maskImage:
-                "linear-gradient(to bottom, black 90%, transparent 100%)",
-              WebkitMaskImage:
-                "linear-gradient(to bottom, black 90%, transparent 100%)",
-            }
-          : {}
-      }
     >
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="relative w-12 h-12 md:w-16 md:h-16 transition-transform group-hover:scale-105">
+        <Link href="/" className="flex items-center group">
+          <div className="relative w-28 h-10 md:w-44 md:h-14 transition-transform group-hover:scale-105">
             <Image
-              src={
-                getStrapiMedia(globalConfig.logo?.url) ||
-                "/assets/sttpu-portrait.png"
-              }
+              src="/assets/sttpu-landscape.png"
               alt={globalConfig.site_name || "STTPU Logo"}
               fill
-              className="object-contain"
+              className={cn(
+                "object-contain transition-all duration-500",
+                !scrolled
+                  ? "brightness-[1.2] drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]"
+                  : "brightness-100 drop-shadow-none",
+              )}
               priority
               unoptimized
             />
-          </div>
-          <div className="flex flex-col">
-            <span
-              className={cn(
-                "font-black text-xl md:text-2xl tracking-tighter leading-none transition-colors",
-                !scrolled ? "text-white drop-shadow-md" : "text-primary",
-              )}
-            >
-              <span className="hidden xs:inline">STT Pekerjaan Umum</span>
-              <span className="xs:hidden">STT Pekerjaan Umum</span>
-            </span>
-            <span
-              className={cn(
-                "text-[10px] uppercase tracking-[0.2em] font-bold mt-1",
-                !scrolled ? "text-white/80" : "text-primary/60",
-              )}
-            >
-              Jakarta
-            </span>
           </div>
         </Link>
 
