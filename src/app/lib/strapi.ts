@@ -1,288 +1,425 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// Strapi API Fetcher
-// Fluent builder pattern — chain populate, filters, sort, pagination, and more.
-// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * ╔══════════════════════════════════════════════════════════════╗
+ * ║       🎓 STT Pekerjaan Umum — Strapi API Client             ║
+ * ║  Type-safe, elegant bridge between Strapi v5 & Next.js 15   ║
+ * ╚══════════════════════════════════════════════════════════════╝
+ */
 
-const STRAPI_URL = process.env.STRAPI_URL ?? "http://127.0.0.1:1337";
-const STRAPI_TOKEN = process.env.STRAPI_API_TOKEN;
+import qs from 'qs';
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// 🌐 Config
+// ─────────────────────────────────────────────────────────────
 
-export type StrapiResponse<T> = {
-  data: T;
+const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL ?? 'http://localhost:1337';
+const STRAPI_TOKEN = process.env.STRAPI_API_TOKEN ?? '';
+
+// ─────────────────────────────────────────────────────────────
+// 🧩 Strapi Base Types (v5 flat format)
+// ─────────────────────────────────────────────────────────────
+
+export interface StrapiMedia {
+  id: number;
+  url: string;
+  alternativeText: string | null;
+  width: number | null;
+  height: number | null;
+  formats: {
+    thumbnail?: StrapiMediaFormat;
+    small?: StrapiMediaFormat;
+    medium?: StrapiMediaFormat;
+    large?: StrapiMediaFormat;
+  } | null;
+}
+
+interface StrapiMediaFormat {
+  url: string;
+  width: number;
+  height: number;
+}
+
+export interface StrapiMeta {
+  id: number;
+  documentId: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string | null;
+  locale: string | null;
+}
+
+export type WithId<T> = T & StrapiMeta;
+
+export interface StrapiListResponse<T> {
+  data: WithId<T>[];
   meta: {
-    pagination?: {
+    pagination: {
       page: number;
       pageSize: number;
       pageCount: number;
       total: number;
     };
   };
-};
-
-export type StrapiItem<T> = {
-  id: number;
-  documentId: string;
-} & T;
-
-type FilterOperator =
-  | "$eq"
-  | "$ne"
-  | "$lt"
-  | "$lte"
-  | "$gt"
-  | "$gte"
-  | "$in"
-  | "$nin"
-  | "$contains"
-  | "$startsWith"
-  | "$endsWith"
-  | "$null"
-  | "$notNull";
-
-type SortOrder = "asc" | "desc";
-
-type FetchOptions = Omit<RequestInit, "method" | "headers"> & {
-  /** Next.js cache option */
-  cache?: RequestCache;
-  /** Next.js revalidation in seconds */
-  revalidate?: number | false;
-  tags?: string[];
-};
-
-// ── Query Builder ─────────────────────────────────────────────────────────────
-
-class StrapiQuery<T = unknown> {
-  private params = new URLSearchParams();
-  private populateFields: string[] = [];
-
-  constructor(private readonly path: string) {}
-
-  // ── Populate ──────────────────────────────────────────────────────────────
-
-  /** Populate all relations one level deep. */
-  populateAll(): this {
-    this.params.set("populate", "*");
-    return this;
-  }
-
-  /** Populate specific relation fields. */
-  populate(...fields: string[]): this {
-    fields.forEach((field, i) => {
-      this.params.set(`populate[${this.populateFields.length + i}]`, field);
-    });
-    this.populateFields.push(...fields);
-    return this;
-  }
-
-  // ── Filters ───────────────────────────────────────────────────────────────
-
-  /** Add a filter. e.g. `.filter("slug", "$eq", "my-post")` */
-  filter(field: string, operator: FilterOperator, value: unknown): this {
-    this.params.set(`filters[${field}][${operator}]`, String(value));
-    return this;
-  }
-
-  /** Shorthand for `$eq` filter. */
-  where(field: string, value: unknown): this {
-    return this.filter(field, "$eq", value);
-  }
-
-  // ── Sort ──────────────────────────────────────────────────────────────────
-
-  /** Sort results. e.g. `.sortBy("createdAt", "desc")` */
-  sortBy(field: string, order: SortOrder = "asc"): this {
-    const existing = this.params.getAll("sort");
-    this.params.set(`sort[${existing.length}]`, `${field}:${order}`);
-    return this;
-  }
-
-  // ── Pagination ────────────────────────────────────────────────────────────
-
-  /** Paginate using page number. */
-  page(page: number, pageSize = 25): this {
-    this.params.set("pagination[page]", String(page));
-    this.params.set("pagination[pageSize]", String(pageSize));
-    return this;
-  }
-
-  /** Paginate using offset/limit. */
-  limit(limit: number, start = 0): this {
-    this.params.set("pagination[limit]", String(limit));
-    this.params.set("pagination[start]", String(start));
-    return this;
-  }
-
-  // ── Fields ────────────────────────────────────────────────────────────────
-
-  /** Restrict returned fields (select). */
-  fields(...fieldNames: string[]): this {
-    fieldNames.forEach((f, i) => this.params.set(`fields[${i}]`, f));
-    return this;
-  }
-
-  // ── Locale ────────────────────────────────────────────────────────────────
-
-  /** Set locale for internationalized content. */
-  locale(code: string): this {
-    this.params.set("locale", code);
-    return this;
-  }
-
-  // ── Execution ─────────────────────────────────────────────────────────────
-
-  private buildUrl(): string {
-    const qs = this.params.toString();
-    return `${STRAPI_URL}/api/${this.path}${qs ? `?${qs}` : ""}`;
-  }
-
-  private buildHeaders(): HeadersInit {
-    const headers: HeadersInit = { "Content-Type": "application/json" };
-    if (STRAPI_TOKEN) headers["Authorization"] = `Bearer ${STRAPI_TOKEN}`;
-    return headers;
-  }
-
-  /** Fetch a collection — returns `StrapiResponse<StrapiItem<T>[]>`. */
-  async get(options: FetchOptions = {}): Promise<StrapiResponse<StrapiItem<T>[]>> {
-    const { revalidate, tags, cache, ...rest } = options;
-    const res = await fetch(this.buildUrl(), {
-      ...rest,
-      method: "GET",
-      headers: this.buildHeaders(),
-      next: {
-        ...(revalidate !== undefined ? { revalidate } : {}),
-        ...(tags ? { tags } : {}),
-      },
-      ...(cache ? { cache } : {}),
-    });
-
-    if (!res.ok) {
-      throw new StrapiError(res.status, res.statusText, await res.text());
-    }
-
-    return res.json() as Promise<StrapiResponse<StrapiItem<T>[]>>;
-  }
-
-  /** Fetch a single entry by id or slug — returns `StrapiResponse<StrapiItem<T>>`. */
-  async getOne(
-    idOrSlug: string | number,
-    options: FetchOptions = {},
-  ): Promise<StrapiResponse<StrapiItem<T>>> {
-    const { revalidate, tags, cache, ...rest } = options;
-    const url = `${STRAPI_URL}/api/${this.path}/${idOrSlug}${
-      this.params.toString() ? `?${this.params}` : ""
-    }`;
-
-    const res = await fetch(url, {
-      ...rest,
-      method: "GET",
-      headers: this.buildHeaders(),
-      next: {
-        ...(revalidate !== undefined ? { revalidate } : {}),
-        ...(tags ? { tags } : {}),
-      },
-      ...(cache ? { cache } : {}),
-    });
-
-    if (!res.ok) {
-      throw new StrapiError(res.status, res.statusText, await res.text());
-    }
-
-    return res.json() as Promise<StrapiResponse<StrapiItem<T>>>;
-  }
-
-  /** POST — create a new entry. */
-  async create(body: Partial<T>, options: FetchOptions = {}): Promise<StrapiResponse<StrapiItem<T>>> {
-    const res = await fetch(this.buildUrl(), {
-      ...options,
-      method: "POST",
-      headers: this.buildHeaders(),
-      body: JSON.stringify({ data: body }),
-    });
-
-    if (!res.ok) {
-      throw new StrapiError(res.status, res.statusText, await res.text());
-    }
-
-    return res.json() as Promise<StrapiResponse<StrapiItem<T>>>;
-  }
-
-  /** PUT — update an existing entry. */
-  async update(
-    id: string | number,
-    body: Partial<T>,
-    options: FetchOptions = {},
-  ): Promise<StrapiResponse<StrapiItem<T>>> {
-    const url = `${STRAPI_URL}/api/${this.path}/${id}`;
-    const res = await fetch(url, {
-      ...options,
-      method: "PUT",
-      headers: this.buildHeaders(),
-      body: JSON.stringify({ data: body }),
-    });
-
-    if (!res.ok) {
-      throw new StrapiError(res.status, res.statusText, await res.text());
-    }
-
-    return res.json() as Promise<StrapiResponse<StrapiItem<T>>>;
-  }
-
-  /** DELETE — remove an entry. */
-  async delete(
-    id: string | number,
-    options: FetchOptions = {},
-  ): Promise<StrapiResponse<StrapiItem<T>>> {
-    const url = `${STRAPI_URL}/api/${this.path}/${id}`;
-    const res = await fetch(url, {
-      ...options,
-      method: "DELETE",
-      headers: this.buildHeaders(),
-    });
-
-    if (!res.ok) {
-      throw new StrapiError(res.status, res.statusText, await res.text());
-    }
-
-    return res.json() as Promise<StrapiResponse<StrapiItem<T>>>;
-  }
 }
 
-// ── Error Class ───────────────────────────────────────────────────────────────
+export interface StrapiSingleResponse<T> {
+  data: WithId<T>;
+  meta: Record<string, unknown>;
+}
+
+// ─────────────────────────────────────────────────────────────
+// 🧩 Component Types (matches /src/components/)
+// ─────────────────────────────────────────────────────────────
+
+/** shared.link */
+export interface SharedLink {
+  id: number;
+  label: string;
+  url: string;
+  is_external: boolean;
+}
+
+/** shared.seo */
+export interface SharedSEO {
+  id: number;
+  meta_title: string;
+  meta_description: string;
+  share_image: StrapiMedia | null;
+  keywords: string | null;
+}
+
+/** shared.contact */
+export interface SharedContact {
+  id: number;
+  email: string | null;
+  whatsapp: string | null;
+  phone: string | null;
+  office_hours: string | null;
+}
+
+/** academic.curriculum */
+export interface AcademicCurriculum {
+  id: number;
+  semester: number;
+  subjectCode: string;
+  subjectName: string;
+  sks: number;
+}
+
+// ─────────────────────────────────────────────────────────────
+// 🏛️ Collection Type Interfaces (matches ARCHITECTURE.md)
+// ─────────────────────────────────────────────────────────────
+
+// A. Academic & Organization
+
+export interface Faculty {
+  name: string;
+  slug: string;
+  description: string | null;
+  logo: StrapiMedia | null;
+  color_theme: string | null;
+  majors?: WithId<Major>[];
+  facilities?: WithId<Facility>[];
+}
+
+export type Degree = 'S1' | 'S2' | 'S3' | 'D3';
+export type Accreditation = 'A' | 'B' | 'C' | 'Unggul';
+
+export interface Major {
+  name: string;
+  slug: string;
+  degree: Degree;
+  accreditation: Accreditation | null;
+  vision_mission: string | null;
+  faculty?: WithId<Faculty>;
+  lecturers?: WithId<Lecturer>[];
+  news?: WithId<News>[];
+  documents?: WithId<Document>[];
+}
+
+export interface Lecturer {
+  name: string;
+  nidn: string | null;
+  photo: StrapiMedia | null;
+  expertise: string[] | null;
+  scholar_link: string | null;
+  is_structural: boolean;
+  major?: WithId<Major>;
+}
+
+export interface Facility {
+  name: string;
+  slug: string;
+  description: string | null;
+  gallery: StrapiMedia[] | null;
+  location_floor: string | null;
+  faculty?: WithId<Faculty>;
+}
+
+// B. Communication & Media
+
+export interface News {
+  title: string;
+  slug: string;
+  content: unknown[] | null;
+  featured_image: StrapiMedia | null;
+  is_featured: boolean;
+  categories?: WithId<Category>[];
+  majors?: WithId<Major>[];
+}
+
+export interface Event {
+  title: string;
+  slug: string;
+  date_start: string;
+  date_end: string | null;
+  location: string | null;
+  registration_url: string | null;
+  categories?: WithId<Category>[];
+}
+
+export interface Category {
+  name: string;
+  slug: string;
+  color_code: string | null;
+  news?: WithId<News>[];
+  events?: WithId<Event>[];
+}
+
+export type DocumentCategory = 'SK' | 'Kurikulum' | 'Panduan';
+
+export interface Document {
+  title: string;
+  file: StrapiMedia;
+  category: DocumentCategory;
+  year: number | null;
+  major?: WithId<Major>;
+}
+
+// C. Single Types
+
+export interface GlobalConfig {
+  site_name: string;
+  logo: StrapiMedia | null;
+  favicon: StrapiMedia | null;
+  address_text: string | null;
+  maps_url: string | null;
+  social_links: SharedLink[];
+}
+
+export interface AdmissionInfo {
+  banner_image: StrapiMedia | null;
+  is_open: boolean;
+  registration_steps: SharedLink[];
+  tuition_fees: unknown | null;
+}
+
+export interface HeroSection {
+  headline: string;
+  subheadline: string | null;
+  cta_button: SharedLink | null;
+  background_video_url: string | null;
+}
+
+// ─────────────────────────────────────────────────────────────
+// ⚙️ Query Params Type
+// ─────────────────────────────────────────────────────────────
+
+export interface StrapiQueryParams {
+  fields?: string[];
+  populate?: string | string[] | Record<string, unknown>;
+  filters?: Record<string, unknown>;
+  sort?: string | string[];
+  pagination?: {
+    page?: number;
+    pageSize?: number;
+    start?: number;
+    limit?: number;
+  };
+  publicationState?: 'live' | 'preview';
+}
+
+// ─────────────────────────────────────────────────────────────
+// 🔌 Core Fetcher
+// ─────────────────────────────────────────────────────────────
 
 export class StrapiError extends Error {
   constructor(
+    message: string,
     public readonly status: number,
-    public readonly statusText: string,
-    public readonly body: string,
   ) {
-    super(`Strapi ${status} ${statusText}: ${body}`);
-    this.name = "StrapiError";
+    super(message);
+    this.name = 'StrapiError';
   }
 }
 
-// ── Entry Point ───────────────────────────────────────────────────────────────
+async function strapiRequest<T>(
+  path: string,
+  params?: StrapiQueryParams,
+  options?: RequestInit,
+): Promise<T> {
+  const queryString = params ? `?${qs.stringify(params, { encodeValuesOnly: true })}` : '';
+  const url = `${STRAPI_URL}/api${path}${queryString}`;
 
-/**
- * Create a Strapi query builder for the given collection/single type path.
- *
- * @example
- * // Fetch all articles, populate cover image
- * const { data } = await strapi<Article>("articles")
- *   .populate("cover")
- *   .sortBy("publishedAt", "desc")
- *   .page(1, 10)
- *   .get({ revalidate: 60 });
- *
- * @example
- * // Fetch a single article by slug
- * const { data } = await strapi<Article>("articles")
- *   .where("slug", "hello-world")
- *   .populateAll()
- *   .getOne(1, { tags: ["articles"] });
- */
-export function strapi<T = unknown>(path: string): StrapiQuery<T> {
-  return new StrapiQuery<T>(path);
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...(STRAPI_TOKEN ? { Authorization: `Bearer ${STRAPI_TOKEN}` } : {}),
+  };
+
+  const response = await fetch(url, {
+    ...options,
+    headers: { ...headers, ...(options?.headers ?? {}) },
+    next: { revalidate: 60 }, // ISR — 60s per Engineering Principles
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: { message: response.statusText } }));
+    throw new StrapiError(error?.error?.message ?? `Request failed: ${response.status}`, response.status);
+  }
+
+  return response.json() as Promise<T>;
 }
 
-export default strapi;
+// ─────────────────────────────────────────────────────────────
+// 📡 Generic API Layer
+// ─────────────────────────────────────────────────────────────
+
+export const fetchMany = <T>(endpoint: string, params?: StrapiQueryParams) =>
+  strapiRequest<StrapiListResponse<T>>(endpoint, params);
+
+export const fetchOne = <T>(endpoint: string, documentId: string, params?: StrapiQueryParams) =>
+  strapiRequest<StrapiSingleResponse<T>>(`${endpoint}/${documentId}`, params);
+
+export const fetchSingle = <T>(endpoint: string, params?: StrapiQueryParams) =>
+  strapiRequest<StrapiSingleResponse<T>>(endpoint, params);
+
+// ─────────────────────────────────────────────────────────────
+// 🏛️ Content-Type Helpers
+// ─────────────────────────────────────────────────────────────
+
+// -- Academic & Organization --
+
+export const getFaculties = (params?: StrapiQueryParams) =>
+  fetchMany<Faculty>('/faculties', {
+    populate: { logo: true, majors: { fields: ['name', 'slug', 'degree', 'accreditation'] } },
+    sort: 'name:asc',
+    ...params,
+  });
+
+export const getFacultyBySlug = (slug: string) =>
+  fetchMany<Faculty>('/faculties', {
+    filters: { slug: { $eq: slug } },
+    populate: {
+      logo: true,
+      majors: { populate: { lecturers: { fields: ['name', 'nidn', 'is_structural'] } } },
+      facilities: { fields: ['name', 'slug', 'location_floor'] },
+    },
+  });
+
+export const getMajors = (params?: StrapiQueryParams) =>
+  fetchMany<Major>('/majors', {
+    populate: { faculty: { fields: ['name', 'slug', 'color_theme'] } },
+    sort: 'name:asc',
+    ...params,
+  });
+
+export const getMajorBySlug = (slug: string) =>
+  fetchMany<Major>('/majors', {
+    filters: { slug: { $eq: slug } },
+    populate: {
+      faculty: { fields: ['name', 'slug'] },
+      lecturers: { populate: { photo: true } },
+    },
+  });
+
+export const getLecturers = (params?: StrapiQueryParams) =>
+  fetchMany<Lecturer>('/lecturers', {
+    populate: { photo: true, major: { fields: ['name', 'slug'] } },
+    sort: 'name:asc',
+    ...params,
+  });
+
+export const getFacilities = (params?: StrapiQueryParams) =>
+  fetchMany<Facility>('/facilities', {
+    populate: { gallery: true, faculty: { fields: ['name', 'slug'] } },
+    sort: 'name:asc',
+    ...params,
+  });
+
+// -- Communication & Media --
+
+export const getNews = (params?: StrapiQueryParams) =>
+  fetchMany<News>('/news', {
+    populate: {
+      featured_image: true,
+      categories: { fields: ['name', 'slug', 'color_code'] },
+    },
+    sort: 'publishedAt:desc',
+    pagination: { pageSize: 10 },
+    ...params,
+  });
+
+export const getNewsBySlug = (slug: string) =>
+  fetchMany<News>('/news', {
+    filters: { slug: { $eq: slug } },
+    populate: {
+      featured_image: true,
+      categories: { fields: ['name', 'slug', 'color_code'] },
+      majors: { fields: ['name', 'slug'] },
+    },
+  });
+
+export const getFeaturedNews = (limit = 5) =>
+  fetchMany<News>('/news', {
+    filters: { is_featured: { $eq: true } },
+    populate: { featured_image: true, categories: { fields: ['name', 'color_code'] } },
+    sort: 'publishedAt:desc',
+    pagination: { pageSize: limit },
+  });
+
+export const getEvents = (params?: StrapiQueryParams) =>
+  fetchMany<Event>('/events', {
+    sort: 'date_start:asc',
+    populate: { categories: { fields: ['name', 'color_code'] } },
+    ...params,
+  });
+
+export const getCategories = (params?: StrapiQueryParams) =>
+  fetchMany<Category>('/categories', { sort: 'name:asc', ...params });
+
+export const getDocuments = (params?: StrapiQueryParams) =>
+  fetchMany<Document>('/documents', {
+    populate: { file: true, major: { fields: ['name', 'slug'] } },
+    sort: 'year:desc',
+    ...params,
+  });
+
+// -- Single Types --
+
+export const getGlobalConfig = () =>
+  fetchSingle<GlobalConfig>('/global-setting', {
+    populate: { logo: true, favicon: true, social_links: true },
+  });
+
+export const getAdmissionInfo = () =>
+  fetchSingle<AdmissionInfo>('/admission-info', {
+    populate: { banner_image: true, registration_steps: true },
+  });
+
+export const getHeroSection = () =>
+  fetchSingle<HeroSection>('/hero-section', {
+    populate: { cta_button: true },
+  });
+
+// ─────────────────────────────────────────────────────────────
+// 🛠️ Utility
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Returns the absolute URL for a Strapi media file.
+ * Prepends STRAPI_URL for relative paths (/uploads/...).
+ */
+export function getStrapiMedia(url: string | null | undefined): string | null {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `${STRAPI_URL}${url}`;
+}
