@@ -30,7 +30,7 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-export function Navbar() {
+export function Navbar({ globalConfig }: { globalConfig: WithId<GlobalConfig> }) {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -44,16 +44,16 @@ export function Navbar() {
   }, []);
 
   const navLinks = [
-    { label: "Beranda", href: "/" },
-    { label: "Tentang", href: "/tentang" },
-    { label: "Akademik", href: "/akademik" },
-    { label: "Program Studi", href: "/prodi" },
-    { label: "LPPM", href: "/lppm" },
-    { label: "LPMI", href: "/lpmi" },
-    { label: "Fasilitas", href: "/fasilitas" },
-    { label: "Berita", href: "/berita" },
-    { label: "Download", href: "/download" },
-    { label: "PMB 2026", href: "/pmb", highlighted: true },
+    { label: "Beranda", url: "/" },
+    { label: "Tentang", url: "/tentang" },
+    { label: "Akademik", url: "/akademik" },
+    { label: "Program Studi", url: "/prodi" },
+    { label: "LPPM", url: "/lppm" },
+    { label: "LPMI", url: "/lpmi" },
+    { label: "Fasilitas", url: "/fasilitas" },
+    { label: "Berita", url: "/berita" },
+    { label: "Download", url: "/download" },
+    { label: "PMB 2026", url: "/pmb", is_highlighted: true },
   ];
 
   return (
@@ -71,11 +71,12 @@ export function Navbar() {
         <Link href="/" className="flex items-center gap-3 group">
           <div className="relative w-12 h-12 md:w-16 md:h-16 transition-transform group-hover:scale-105">
             <Image
-              src="/assets/sttpu-portrait.png"
-              alt="STTPU Logo"
+              src={getStrapiMedia(globalConfig.logo?.url) || "/assets/sttpu-portrait.png"}
+              alt={globalConfig.site_name || "STTPU Logo"}
               fill
               className="object-contain"
               priority
+              unoptimized
             />
           </div>
           <div className="flex flex-col">
@@ -104,10 +105,10 @@ export function Navbar() {
           {navLinks.map((link) => (
             <Link
               key={link.label}
-              href={link.href}
+              href={link.url}
               className={cn(
                 "text-sm font-bold tracking-tight transition-all hover:text-secondary",
-                link.highlighted
+                link.is_highlighted
                   ? "bg-secondary text-primary px-6 py-2 rounded-full hover:bg-white shadow-xl shadow-secondary/20"
                   : scrolled
                     ? "text-primary hover:text-secondary"
@@ -139,10 +140,10 @@ export function Navbar() {
             {navLinks.map((link) => (
               <Link
                 key={link.label}
-                href={link.href}
+                href={link.url}
                 className={cn(
                   "text-lg font-semibold py-2",
-                  link.highlighted ? "text-secondary" : "text-foreground",
+                  link.is_highlighted ? "text-secondary" : "text-foreground",
                 )}
                 onClick={() => setIsOpen(false)}
               >
@@ -444,7 +445,7 @@ export function Footer({
               </div>
               <div>
                 <h2 className="text-3xl font-black leading-none tracking-tighter">
-                  STT Pekerjaan Umum
+                  {globalConfig.site_name || "STT Pekerjaan Umum"}
                 </h2>
                 <p className="text-xs text-white/60 uppercase tracking-widest mt-1 font-bold">
                   Jakarta
@@ -465,22 +466,12 @@ export function Footer({
                   </span>
                 </div>
               )}
-              {globalConfig.contact_info?.phone && (
-                <div className="flex items-center gap-3">
-                  <Phone className="text-secondary shrink-0" size={20} />
-                  <span className="text-sm text-white/80">
-                    {globalConfig.contact_info.phone}
-                  </span>
-                </div>
-              )}
-              {globalConfig.contact_info?.email && (
-                <div className="flex items-center gap-3 text-white/80 hover:text-secondary transition-colors">
-                  <span className="text-sm font-medium">Email:</span>
-                  <a href={`mailto:${globalConfig.contact_info.email}`} className="text-sm">
-                    {globalConfig.contact_info.email}
-                  </a>
-                </div>
-              )}
+              <div className="flex items-center gap-3">
+                <Phone className="text-secondary shrink-0" size={20} />
+                <span className="text-sm text-white/80">
+                  02138851092 - 02138851109
+                </span>
+              </div>
             </div>
           </div>
 
