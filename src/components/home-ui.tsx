@@ -11,6 +11,8 @@ import {
   Phone,
   ArrowRight,
   LucideIcon,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
@@ -30,9 +32,32 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-export function Navbar({ globalConfig }: { globalConfig: WithId<GlobalConfig> }) {
+interface NavLinkItem {
+  label: string;
+  url: string;
+  is_highlighted?: boolean;
+  subLinks?: NavLinkItem[];
+}
+
+export function Navbar({
+  globalConfig,
+}: {
+  globalConfig: WithId<GlobalConfig>;
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [activeMobilePaths, setActiveMobilePaths] = useState<string[]>([]);
+
+  const toggleMobileSub = (label: string, level: number) => {
+    setActiveMobilePaths((prev) => {
+      const newPaths = [...prev.slice(0, level)];
+      if (prev[level] === label) {
+        return newPaths;
+      }
+      newPaths[level] = label;
+      return newPaths;
+    });
+  };
 
   useEffect(() => {
     // Force scroll to top on mount/refresh
@@ -46,14 +71,139 @@ export function Navbar({ globalConfig }: { globalConfig: WithId<GlobalConfig> })
   const navLinks = [
     { label: "Beranda", url: "/" },
     { label: "Tentang", url: "/tentang" },
-    { label: "Akademik", url: "/akademik" },
-    { label: "Program Studi", url: "/prodi" },
-    { label: "LPPM", url: "/lppm" },
-    { label: "LPMI", url: "/lpmi" },
-    { label: "Fasilitas", url: "/fasilitas" },
-    { label: "Berita", url: "/berita" },
-    { label: "Download", url: "/download" },
-    { label: "PMB 2026", url: "/pmb", is_highlighted: true },
+    {
+      label: "Akademik",
+      url: "/akademik",
+      subLinks: [
+        {
+          label: "SIAKAD",
+          url: "#",
+          subLinks: [
+            {
+              label: "Portal Dosen",
+              url: "https://sttsaptataruna.portaldosen.siakad.tech/",
+            },
+            {
+              label: "Portal Mahasiswa",
+              url: "https://mhs.sttpu.civitas.id/",
+            },
+            {
+              label: "Portal Orang Tua",
+              url: "https://ortu.sttpu.civitas.id/",
+            },
+            {
+              label: "Panduan SIAKAD",
+              url: "#",
+              subLinks: [
+                {
+                  label: "Panduan Dosen",
+                  url: "#",
+                },
+                {
+                  label: "Panduan Mahasiswa",
+                  url: "https://www.youtube.com/watch?v=WWsJ1KaBqCo&list=PL92IvqVb8kkidupuI2ctfwqM6es7C9o0v",
+                },
+                {
+                  label: "Panduan Orang Tua",
+                  url: "#",
+                },
+              ],
+            },
+          ],
+        },
+        {
+          label: "LMS",
+          url: "#",
+          subLinks: [
+            {
+              label: "Portal Dosen",
+              url: "https://sttpu.dosen.lms.civitas.id/",
+            },
+            {
+              label: "Portal Mahasiswa",
+              url: "https://sttpu.lms.civitas.id/",
+            },
+            {
+              label: "Panduan LMS",
+              url: "#",
+              subLinks: [
+                {
+                  label: "Panduan Dosen",
+                  url: "https://www.youtube.com/playlist?list=PLdgvBqqJqMZ9N_sqJoxvLQSWWZGYjUHbv",
+                },
+                {
+                  label: "Panduan Mahasiswa",
+                  url: "https://www.youtube.com/playlist?list=PLdgvBqqJqMZ-bAzNjP9KYE3u-1R_m_u0v",
+                },
+              ],
+            },
+          ],
+        },
+        { label: "Pengajuan", url: "#" },
+      ],
+    },
+    {
+      label: "Program Studi",
+      url: "/prodi",
+      subLinks: [
+        { label: "Teknik Sipil", url: "/prodi/teknik-sipil" },
+        { label: "Teknik Lingkungan", url: "/prodi/teknik-lingkungan" },
+        { label: "Teknik Informatika", url: "/prodi/teknik-informatika" },
+      ],
+    },
+    {
+      label: "LPPM",
+      url: "/lppm",
+      subLinks: [
+        { label: "PKM", url: "/lppm/pkm" },
+        { label: "Publikasi", url: "/lppm/publikasi" },
+        { label: "Laporan", url: "/lppm/laporan" },
+      ],
+    },
+    {
+      label: "LPMI",
+      url: "/lpmi",
+      subLinks: [{ label: "Segera Hadir", url: "#" }],
+    },
+    {
+      label: "Fasilitas",
+      url: "/fasilitas",
+      subLinks: [
+        { label: "Laboratorium", url: "/fasilitas/laboratorium" },
+        { label: "Perpustakaan", url: "/fasilitas/perpustakaan" },
+        { label: "Masjid", url: "/fasilitas/masjid" },
+        { label: "Kantin", url: "/fasilitas/kantin" },
+        { label: "Lainnya", url: "/fasilitas/lainnya" },
+      ],
+    },
+    {
+      label: "Berita",
+      url: "/berita",
+      subLinks: [
+        { label: "Kegiatan", url: "/berita/kegiatan" },
+        { label: "Akademik", url: "/berita/akademik" },
+        { label: "Pengumuman", url: "/berita/pengumuman" },
+        { label: "Lainnya", url: "/berita/lainnya" },
+      ],
+    },
+    {
+      label: "Download",
+      url: "/download",
+      subLinks: [
+        { label: "Kalender Akademik", url: "/download/kalender-akademik" },
+        { label: "Formulir", url: "/download/formulir" },
+        { label: "Pedoman Akademik", url: "/download/pedoman-akademik" },
+        {
+          label: "Pedoman Kemahasiswaan",
+          url: "/download/pedoman-kemahasiswaan",
+        },
+      ],
+    },
+    {
+      label: "PMB 2026",
+      url: "https://sttsaptataruna.pmbonline.siakad.tech/",
+      is_highlighted: true,
+    },
   ];
 
   return (
@@ -62,16 +212,25 @@ export function Navbar({ globalConfig }: { globalConfig: WithId<GlobalConfig> })
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         scrolled ? "glass py-3 shadow-lg" : "bg-transparent py-5",
       )}
-      style={scrolled ? { 
-        maskImage: 'linear-gradient(to bottom, black 90%, transparent 100%)',
-        WebkitMaskImage: 'linear-gradient(to bottom, black 90%, transparent 100%)'
-      } : {}}
+      style={
+        scrolled
+          ? {
+              maskImage:
+                "linear-gradient(to bottom, black 90%, transparent 100%)",
+              WebkitMaskImage:
+                "linear-gradient(to bottom, black 90%, transparent 100%)",
+            }
+          : {}
+      }
     >
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 group">
           <div className="relative w-12 h-12 md:w-16 md:h-16 transition-transform group-hover:scale-105">
             <Image
-              src={getStrapiMedia(globalConfig.logo?.url) || "/assets/sttpu-portrait.png"}
+              src={
+                getStrapiMedia(globalConfig.logo?.url) ||
+                "/assets/sttpu-portrait.png"
+              }
               alt={globalConfig.site_name || "STTPU Logo"}
               fill
               className="object-contain"
@@ -101,22 +260,36 @@ export function Navbar({ globalConfig }: { globalConfig: WithId<GlobalConfig> })
         </Link>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-10">
+        <div className="hidden md:flex items-center gap-7">
           {navLinks.map((link) => (
-            <Link
-              key={link.label}
-              href={link.url}
-              className={cn(
-                "text-sm font-bold tracking-tight transition-all hover:text-secondary",
-                link.is_highlighted
-                  ? "bg-secondary text-primary px-6 py-2 rounded-full hover:bg-white shadow-xl shadow-secondary/20"
-                  : scrolled
-                    ? "text-primary hover:text-secondary"
-                    : "text-white hover:text-white/80",
+            <div key={link.label} className="relative group/main">
+              <Link
+                href={link.url}
+                target={link.url.startsWith("http") ? "_blank" : undefined}
+                rel={
+                  link.url.startsWith("http") ? "noopener noreferrer" : undefined
+                }
+                className={cn(
+                  "text-sm font-bold tracking-tight transition-all flex items-center gap-1",
+                  link.is_highlighted
+                    ? "bg-secondary text-primary px-6 py-2 rounded-full hover:bg-white shadow-xl shadow-secondary/20"
+                    : scrolled
+                      ? "text-primary hover:text-secondary"
+                      : "text-white hover:text-white/80",
+                )}
+              >
+                {link.label}
+                {link.subLinks && (
+                  <ChevronDown className="w-4 h-4 transition-transform group-hover/main:rotate-180" />
+                )}
+              </Link>
+
+              {link.subLinks && (
+                <div className="absolute top-full left-1/2 -translate-x-1/2 pt-4 opacity-0 invisible translate-y-2 group-hover/main:opacity-100 group-hover/main:visible group-hover/main:translate-y-0 transition-all duration-300 z-50">
+                  <DesktopSubMenu items={link.subLinks} level={1} />
+                </div>
               )}
-            >
-              {link.label}
-            </Link>
+            </div>
           ))}
         </div>
 
@@ -138,22 +311,149 @@ export function Navbar({ globalConfig }: { globalConfig: WithId<GlobalConfig> })
         <div className="md:hidden absolute top-full left-0 right-0 glass border-t border-border animate-fade-in-up">
           <div className="flex flex-col p-6 gap-4">
             {navLinks.map((link) => (
-              <Link
+              <MobileSubMenu
                 key={link.label}
-                href={link.url}
-                className={cn(
-                  "text-lg font-semibold py-2",
-                  link.is_highlighted ? "text-secondary" : "text-foreground",
-                )}
-                onClick={() => setIsOpen(false)}
-              >
-                {link.label}
-              </Link>
+                item={link}
+                level={0}
+                activePaths={activeMobilePaths}
+                onToggle={toggleMobileSub}
+                onClose={() => setIsOpen(false)}
+              />
             ))}
           </div>
         </div>
       )}
     </nav>
+  );
+}
+
+function DesktopSubMenu({
+  items,
+  level,
+}: {
+  items: NavLinkItem[];
+  level: number;
+}) {
+  const groupNames = [
+    "group/sub-0",
+    "group/sub-1",
+    "group/sub-2",
+    "group/sub-3",
+    "group/sub-4",
+    "group/sub-5",
+  ];
+  const hoverClasses = [
+    "group-hover/sub-0:opacity-100 group-hover/sub-0:visible group-hover/sub-0:translate-x-0",
+    "group-hover/sub-1:opacity-100 group-hover/sub-1:visible group-hover/sub-1:translate-x-0",
+    "group-hover/sub-2:opacity-100 group-hover/sub-2:visible group-hover/sub-2:translate-x-0",
+    "group-hover/sub-3:opacity-100 group-hover/sub-3:visible group-hover/sub-3:translate-x-0",
+    "group-hover/sub-4:opacity-100 group-hover/sub-4:visible group-hover/sub-4:translate-x-0",
+    "group-hover/sub-5:opacity-100 group-hover/sub-5:visible group-hover/sub-5:translate-x-0",
+  ];
+
+  return (
+    <div
+      className={cn(
+        "bg-white/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl min-w-[220px] p-2",
+        level > 1
+          ? cn(
+              "absolute left-full top-0 ml-2 opacity-0 invisible translate-x-2 transition-all duration-300",
+              hoverClasses[level - 1],
+            )
+          : "",
+      )}
+    >
+      {items.map((sub) => (
+        <div key={sub.label} className={cn("relative", groupNames[level])}>
+          <Link
+            href={sub.url}
+            target={sub.url.startsWith("http") ? "_blank" : undefined}
+            rel={
+              sub.url.startsWith("http") ? "noopener noreferrer" : undefined
+            }
+            className="flex items-center justify-between px-4 py-3 text-sm font-bold text-primary hover:bg-primary/5 hover:text-secondary rounded-xl transition-all"
+          >
+            {sub.label}
+            {sub.subLinks && <ChevronRight className="w-4 h-4" />}
+          </Link>
+          {sub.subLinks && (
+            <DesktopSubMenu items={sub.subLinks} level={level + 1} />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MobileSubMenu({
+  item,
+  level,
+  activePaths,
+  onToggle,
+  onClose
+}: {
+  item: NavLinkItem;
+  level: number;
+  activePaths: string[];
+  onToggle: (label: string, level: number) => void;
+  onClose: () => void;
+}) {
+  const isActive = activePaths[level] === item.label;
+
+  return (
+    <div className="flex flex-col">
+      <div className="flex items-center justify-between">
+        <Link
+          href={item.url}
+          target={item.url.startsWith("http") ? "_blank" : undefined}
+          rel={
+            item.url.startsWith("http") ? "noopener noreferrer" : undefined
+          }
+          className={cn(
+            level === 0
+              ? "text-lg font-semibold py-2 grow"
+              : "text-base font-medium py-2 text-muted-foreground hover:text-primary transition-colors grow",
+            item.is_highlighted ? "text-secondary" : "",
+          )}
+          onClick={() => {
+            if (!item.subLinks) onClose();
+          }}
+        >
+          {item.label}
+        </Link>
+        {item.subLinks && (
+          <button
+            onClick={() => onToggle(item.label, level)}
+            className="p-2"
+          >
+            <ChevronDown
+              className={cn(
+                "transition-transform text-muted-foreground",
+                level === 0 ? "w-5 h-5" : "w-4 h-4",
+                isActive ? "rotate-180" : ""
+              )}
+            />
+          </button>
+        )}
+      </div>
+      {item.subLinks && isActive && (
+        <div className={cn(
+          "flex flex-col pl-4 border-l-2 border-primary/10 mb-2 mt-1 gap-1 animate-fade-in",
+          level > 0 && "border-l border-primary/10 ml-2"
+        )}>
+          {item.subLinks.map((sub) => (
+            <MobileSubMenu
+              key={sub.label}
+              item={sub}
+              level={level + 1}
+              activePaths={activePaths}
+              onToggle={onToggle}
+              onClose={onClose}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
