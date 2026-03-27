@@ -36,11 +36,11 @@ export default async function Home() {
       getAdmissionInfo(),
     ]);
 
-  const hero = heroRes.data;
-  const globalConfig = globalRes.data;
-  const fetchedNews = newsRes.data;
-  const upcomingEvents = eventsRes.data;
-  const admission = admissionRes.data;
+  const hero = heroRes?.data || { headline: "STT Pekerjaan Umum", subheadline: "Menjadi Insan Unggul dan Inovatif", cta_button: null, background_video_url: null };
+  const globalConfig = globalRes?.data || { site_name: "STTPU", address_text: "", maps_url: "", social_links: [], logo: null, favicon: null };
+  const fetchedNews = newsRes?.data || [];
+  const upcomingEvents = eventsRes?.data || [];
+  const admission = admissionRes?.data || { is_open: true, registration_steps: [], tuition_fees: null, banner_image: null };
 
   // -- DUMMY DATA INJECTION --
   // Menyediakan data berita tiruan (dummy) agar tampilan website (Carousel & Card Berita)

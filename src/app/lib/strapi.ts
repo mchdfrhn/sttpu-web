@@ -284,14 +284,32 @@ async function strapiRequest<T>(
 // 📡 Generic API Layer
 // ─────────────────────────────────────────────────────────────
 
-export const fetchMany = <T>(endpoint: string, params?: StrapiQueryParams) =>
-  strapiRequest<StrapiListResponse<T>>(endpoint, params);
+export const fetchMany = async <T>(endpoint: string, params?: StrapiQueryParams) => {
+  try {
+    return await strapiRequest<StrapiListResponse<T>>(endpoint, params);
+  } catch (error) {
+    console.warn(`⚠️ [Strapi Offline] Failed to fetch ${endpoint} - returning fallback.`, error);
+    return { data: [], meta: { pagination: { page: 1, pageSize: 0, pageCount: 0, total: 0 } } } as StrapiListResponse<T>;
+  }
+};
 
-export const fetchOne = <T>(endpoint: string, documentId: string, params?: StrapiQueryParams) =>
-  strapiRequest<StrapiSingleResponse<T>>(`${endpoint}/${documentId}`, params);
+export const fetchOne = async <T>(endpoint: string, documentId: string, params?: StrapiQueryParams) => {
+  try {
+    return await strapiRequest<StrapiSingleResponse<T>>(`${endpoint}/${documentId}`, params);
+  } catch (error) {
+    console.warn(`⚠️ [Strapi Offline] Failed to fetch ${endpoint}/${documentId} - returning fallback.`, error);
+    return { data: null as unknown as WithId<T>, meta: {} };
+  }
+};
 
-export const fetchSingle = <T>(endpoint: string, params?: StrapiQueryParams) =>
-  strapiRequest<StrapiSingleResponse<T>>(endpoint, params);
+export const fetchSingle = async <T>(endpoint: string, params?: StrapiQueryParams) => {
+  try {
+    return await strapiRequest<StrapiSingleResponse<T>>(endpoint, params);
+  } catch (error) {
+    console.warn(`⚠️ [Strapi Offline] Failed to fetch ${endpoint} - returning fallback.`, error);
+    return { data: null as unknown as WithId<T>, meta: {} };
+  }
+};
 
 // ─────────────────────────────────────────────────────────────
 // 🏛️ Content-Type Helpers
