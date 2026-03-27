@@ -6,7 +6,7 @@
 
 @theme {
   /* Colors - Derived from STTPU Logo */
-  --color-primary: oklch(0.3 0.15 270); /* Navy Blue/Purple #2b0080 */
+  --color-primary: #0A4E9A; /* True Navy Blue */
   --color-primary-foreground: oklch(0.98 0.01 270);
 
   --color-secondary: oklch(0.8 0.18 85); /* Refined Institutional Gold */
@@ -25,17 +25,17 @@
   --color-muted-foreground: oklch(0.4 0.03 270);
 
   --color-accent: oklch(0.9 0.1 85);
-  --color-accent-foreground: oklch(0.3 0.15 270);
+  --color-accent-foreground: #0A4E9A;
 
   --color-destructive: oklch(0.6 0.18 20);
   --color-destructive-foreground: oklch(0.98 0 0);
 
   --color-border: oklch(0.9 0.02 270);
   --color-input: oklch(0.9 0.02 270);
-  --color-ring: oklch(0.3 0.15 270);
+  --color-ring: #0A4E9A;
 
   /* Chart Colors */
-  --color-chart-1: oklch(0.3 0.15 270);
+  --color-chart-1: #0A4E9A;
   --color-chart-2: oklch(0.8 0.18 85);
   --color-chart-3: oklch(0.45 0.2 280);
   --color-chart-4: oklch(0.85 0.15 75);
@@ -57,19 +57,19 @@
   --card-foreground: oklch(0.1 0.02 270);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.1 0.02 270);
-  --primary: oklch(0.3 0.15 270);
+  --primary: #0A4E9A;
   --primary-foreground: oklch(0.98 0.01 270);
   --secondary: oklch(0.8 0.18 85);
   --secondary-foreground: oklch(0.1 0.02 270);
   --muted: oklch(0.95 0.01 270);
   --muted-foreground: oklch(0.4 0.03 270);
   --accent: oklch(0.9 0.1 85);
-  --accent-foreground: oklch(0.3 0.15 270);
+  --accent-foreground: #0A4E9A;
   --destructive: oklch(0.6 0.18 20);
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(0.9 0.02 270);
   --input: oklch(0.9 0.02 270);
-  --ring: oklch(0.3 0.15 270);
+  --ring: #0A4E9A;
   --radius: 0.8rem;
 }
 
@@ -80,7 +80,7 @@
   --card-foreground: oklch(0.95 0.01 270);
   --popover: oklch(0.18 0.05 270);
   --popover-foreground: oklch(0.95 0.01 270);
-  --primary: oklch(0.5 0.2 280);
+  --primary: #3b82f6; /* Lighter shade for dark mode visibility */
   --primary-foreground: oklch(0.98 0.01 280);
   --secondary: oklch(0.8 0.18 85);
   --secondary-foreground: oklch(0.15 0.05 270);
@@ -90,7 +90,7 @@
   --accent-foreground: oklch(0.95 0.01 270);
   --border: oklch(0.25 0.05 270);
   --input: oklch(0.25 0.05 270);
-  --ring: oklch(0.5 0.2 280);
+  --ring: #3b82f6;
 }
 
 @layer base {
@@ -117,8 +117,8 @@
   /* Premium Blueprint Grid with Branded Colors */
   .blueprint-grid {
     background-image:
-      linear-gradient(to right, rgba(43, 0, 128, 0.02) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(43, 0, 128, 0.02) 1px, transparent 1px);
+      linear-gradient(to right, rgba(10, 78, 154, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(10, 78, 154, 0.05) 1px, transparent 1px);
     background-size: 40px 40px;
   }
 
@@ -126,8 +126,8 @@
     content: "";
     @apply absolute inset-0 pointer-events-none;
     background-image:
-      linear-gradient(to right, rgba(43, 0, 128, 0.01) 2px, transparent 2px),
-      linear-gradient(to bottom, rgba(43, 0, 128, 0.01) 2px, transparent 2px);
+      linear-gradient(to right, rgba(10, 78, 154, 0.03) 2px, transparent 2px),
+      linear-gradient(to bottom, rgba(10, 78, 154, 0.03) 2px, transparent 2px);
     background-size: 200px 200px;
   }
 }

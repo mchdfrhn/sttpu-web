@@ -17,6 +17,15 @@ import {
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+  type CarouselApi,
+} from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
+import {
   Faculty,
   News,
   Event,
@@ -73,7 +82,7 @@ export function Navbar({
     { label: "Tentang", url: "/tentang" },
     {
       label: "Akademik",
-      url: "/akademik",
+      url: "#",
       subLinks: [
         {
           label: "SIAKAD",
@@ -139,12 +148,15 @@ export function Navbar({
             },
           ],
         },
-        { label: "Pengajuan", url: "#" },
+        {
+          label: "Pengajuan",
+          url: "https://app.sipekad.web.id/",
+        },
       ],
     },
     {
       label: "Program Studi",
-      url: "/prodi",
+      url: "#",
       subLinks: [
         { label: "Teknik Sipil", url: "/prodi/teknik-sipil" },
         { label: "Teknik Lingkungan", url: "/prodi/teknik-lingkungan" },
@@ -153,7 +165,7 @@ export function Navbar({
     },
     {
       label: "LPPM",
-      url: "/lppm",
+      url: "#",
       subLinks: [
         { label: "PKM", url: "/lppm/pkm" },
         { label: "Publikasi", url: "/lppm/publikasi" },
@@ -162,12 +174,12 @@ export function Navbar({
     },
     {
       label: "LPMI",
-      url: "/lpmi",
+      url: "#",
       subLinks: [{ label: "Segera Hadir", url: "#" }],
     },
     {
       label: "Fasilitas",
-      url: "/fasilitas",
+      url: "#",
       subLinks: [
         { label: "Laboratorium", url: "/fasilitas/laboratorium" },
         { label: "Perpustakaan", url: "/fasilitas/perpustakaan" },
@@ -178,7 +190,7 @@ export function Navbar({
     },
     {
       label: "Berita",
-      url: "/berita",
+      url: "#",
       subLinks: [
         { label: "Kegiatan", url: "/berita/kegiatan" },
         { label: "Akademik", url: "/berita/akademik" },
@@ -188,7 +200,7 @@ export function Navbar({
     },
     {
       label: "Download",
-      url: "/download",
+      url: "#",
       subLinks: [
         { label: "Kalender Akademik", url: "/download/kalender-akademik" },
         { label: "Formulir", url: "/download/formulir" },
@@ -209,12 +221,21 @@ export function Navbar({
   return (
     <nav
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-        scrolled ? "glass py-3 shadow-lg" : "bg-transparent py-5",
+        "fixed top-0 left-0 right-0 z-100 transition-all duration-300",
+        scrolled ? "bg-white/60 backdrop-blur-2xl py-3 shadow-lg" : "bg-transparent py-5",
       )}
     >
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
-        <Link href="/" className="flex items-center group">
+        <Link
+          href="/"
+          className="flex items-center group"
+          onClick={(e) => {
+            if (window.location.pathname === "/") {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          }}
+        >
           <div className="relative w-28 h-10 md:w-44 md:h-14 transition-transform group-hover:scale-105">
             <Image
               src="/assets/sttpu-landscape.png"
@@ -239,6 +260,12 @@ export function Navbar({
                     ? "noopener noreferrer"
                     : undefined
                 }
+                onClick={(e) => {
+                  if (link.url === "/") {
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }
+                }}
                 className={cn(
                   "text-sm font-bold tracking-tight transition-all flex items-center gap-1",
                   link.is_highlighted
@@ -276,10 +303,40 @@ export function Navbar({
         </button>
       </div>
 
-      {/* Mobile Menu */}
-      {isOpen && (
-        <div className="md:hidden absolute top-full left-0 right-0 glass border-t border-border animate-fade-in-up">
-          <div className="flex flex-col p-6 gap-4">
+      {/* Mobile Menu Overlay */}
+      <div
+        className={cn(
+          "fixed inset-0 bg-white/60 backdrop-blur-2xl z-100 transition-all duration-500 ease-in-out md:hidden flex flex-col",
+          isOpen
+            ? "translate-x-0 opacity-100"
+            : "translate-x-full opacity-0 pointer-events-none",
+        )}
+      >
+        {/* Mobile Header (Ultra-Transparent Glass) */}
+        <div className="flex items-center justify-between p-4 border-b border-white/10 bg-transparent sticky top-0 z-10">
+          <Link href="/" onClick={() => setIsOpen(false)} className="flex items-center">
+            <div className="relative w-28 h-10">
+              <Image
+                src="/assets/sttpu-landscape.png"
+                alt={globalConfig.site_name || "STTPU Logo"}
+                fill
+                className="object-contain"
+                priority
+                unoptimized
+              />
+            </div>
+          </Link>
+          <button
+            className="p-2 hover:bg-muted rounded-full transition-colors"
+            onClick={() => setIsOpen(false)}
+          >
+            <X size={28} className="text-primary" />
+          </button>
+        </div>
+
+        {/* Mobile Menu Items */}
+        <div className="flex-1 overflow-y-auto px-6 py-8">
+          <div className="flex flex-col gap-2">
             {navLinks.map((link) => (
               <MobileSubMenu
                 key={link.label}
@@ -292,7 +349,18 @@ export function Navbar({
             ))}
           </div>
         </div>
-      )}
+
+        {/* Mobile Footer/Action Section (Optional) */}
+        <div className="p-6 border-t border-border bg-muted/20">
+          <Link
+            href="/pmb"
+            onClick={() => setIsOpen(false)}
+            className="block w-full text-center bg-secondary text-white py-4 rounded-2xl font-bold text-lg shadow-xl shadow-secondary/20 active:scale-95 transition-transform"
+          >
+            Daftar PMB 2026
+          </Link>
+        </div>
+      </div>
     </nav>
   );
 }
@@ -370,30 +438,41 @@ function MobileSubMenu({
 
   return (
     <div className="flex flex-col">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between group">
         <Link
           href={item.url}
           target={item.url.startsWith("http") ? "_blank" : undefined}
           rel={item.url.startsWith("http") ? "noopener noreferrer" : undefined}
           className={cn(
+            "transition-all duration-300 grow",
             level === 0
-              ? "text-lg font-semibold py-2 grow"
-              : "text-base font-medium py-2 text-muted-foreground hover:text-primary transition-colors grow",
+              ? "text-xl font-extrabold py-3 text-primary tracking-tight"
+              : "text-base font-medium py-2 text-muted-foreground hover:text-primary pl-2",
             item.is_highlighted ? "text-secondary" : "",
+            isActive && level === 0 ? "text-secondary" : "",
           )}
           onClick={() => {
+            if (item.url === "/") {
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
             if (!item.subLinks) onClose();
           }}
         >
           {item.label}
         </Link>
         {item.subLinks && (
-          <button onClick={() => onToggle(item.label, level)} className="p-2">
+          <button
+            onClick={() => onToggle(item.label, level)}
+            className={cn(
+              "p-3 rounded-xl transition-all",
+              isActive ? "bg-primary/5" : "hover:bg-muted",
+            )}
+          >
             <ChevronDown
               className={cn(
-                "transition-transform text-muted-foreground",
-                level === 0 ? "w-5 h-5" : "w-4 h-4",
-                isActive ? "rotate-180" : "",
+                "transition-transform duration-500",
+                level === 0 ? "w-6 h-6 text-primary" : "w-5 h-5 text-muted-foreground",
+                isActive ? "rotate-180 text-secondary" : "",
               )}
             />
           </button>
@@ -402,8 +481,8 @@ function MobileSubMenu({
       {item.subLinks && isActive && (
         <div
           className={cn(
-            "flex flex-col pl-4 border-l-2 border-primary/10 mb-2 mt-1 gap-1 animate-fade-in",
-            level > 0 && "border-l border-primary/10 ml-2",
+            "flex flex-col mb-2 mt-1 gap-1 overflow-hidden",
+            level === 0 ? "pl-4 border-l-2 border-secondary/20 ml-2" : "pl-6 border-l border-border ml-4",
           )}
         >
           {item.subLinks.map((sub) => (
@@ -427,13 +506,25 @@ export function Hero({
   subheadline,
   ctaLabel,
   ctaUrl,
+  news = [],
 }: {
   headline: string;
   subheadline?: string | null;
   ctaLabel?: string | null;
   ctaUrl?: string | null;
+  news?: WithId<News>[];
 }) {
   const container = useRef<HTMLDivElement>(null);
+  const [api, setApi] = useState<CarouselApi>();
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (!api) return;
+    setCurrentIndex(api.selectedScrollSnap());
+    api.on("select", () => {
+      setCurrentIndex(api.selectedScrollSnap());
+    });
+  }, [api]);
 
   useGSAP(
     () => {
@@ -447,66 +538,142 @@ export function Hero({
         .from(".hero-btns", { opacity: 0, scale: 0.9, duration: 0.8 }, "-=0.6")
         .from(".hero-visual", { opacity: 0, x: 50, duration: 1.2 }, "-=1");
     },
-    { scope: container },
+    { scope: container }
   );
 
+  // Combine static hero with news highlights
+  const slides = [
+    {
+      type: "static",
+      title: headline,
+      desc: subheadline,
+      label: ctaLabel || "Daftar Sekarang",
+      url: ctaUrl || "#",
+      image: "/assets/hero-premium.png",
+      date: "Penerimaan Mahasiswa Baru 2026",
+      category: "Info Utama"
+    },
+    ...news.map((item) => ({
+      type: "news",
+      title: item.title,
+      desc: "Simak berita terbaru seputar STT Pekerjaan Umum langsung dari kanal informasi kami.",
+      label: "Selengkapnya",
+      url: `/berita/${item.slug}`,
+      image: getStrapiMedia(item.featured_image?.url) || "/assets/hero-premium.png",
+      date: new Date(item.publishedAt || item.createdAt).toLocaleDateString("id-ID", {
+        day: "numeric", month: "long", year: "numeric",
+      }),
+      category: item.categories && item.categories.length > 0 ? item.categories[0].name : "Kabar Kampus"
+    })),
+  ];
+
   return (
-    <section
-      ref={container}
-      className="relative min-h-[90vh] flex items-center pt-20 overflow-hidden"
-    >
-      {/* Background with Grid & Gradient */}
-      <div className="absolute inset-0 blueprint-grid opacity-20 z-0" />
-      <div className="absolute inset-0 bg-linear-to-br from-primary via-primary to-background z-[-1]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(255,255,255,0.4),transparent_50%)] z-0" />
+    <section ref={container} className="relative min-h-[90vh] flex items-center pt-20 overflow-hidden outline-none bg-background">
+      {/* 1. Original dark blue gradient base */}
+      <div className="absolute inset-0 bg-linear-to-br from-primary via-[#0b3b60] to-background z-0" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-secondary/10 via-transparent to-transparent z-0" />
+
+      {/* 2. Transparent fain image overlay (watermark effect) */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none transition-all duration-1000">
+        {slides.map((slide, i) => (
+          <Image
+            key={i}
+            src={slide.image}
+            fill
+            alt="bg"
+            className={cn(
+              "object-cover transition-opacity duration-1000 mix-blend-luminosity",
+              currentIndex === i ? "opacity-15" : "opacity-0"
+            )}
+          />
+        ))}
+        {/* Soften the image bottom into the background */}
+        <div className="absolute inset-0 bg-linear-to-b from-transparent via-background/20 to-background/90" />
+      </div>
+
+      {/* 3. Blueprint Grid & Radial Light Restores */}
+      <div className="absolute inset-0 blueprint-grid opacity-15 z-0 pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(255,255,255,0.08),transparent_40%)] z-0 pointer-events-none" />
 
       {/* Decorative Elements */}
-      <div className="absolute top-1/4 -right-20 w-96 h-96 bg-secondary/10 rounded-full blur-[120px] animate-pulse" />
-      <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-primary/20 rounded-full blur-[100px]" />
+      <div className="absolute top-1/4 -right-20 w-96 h-96 bg-secondary/10 rounded-full blur-[120px] animate-pulse pointer-events-none" data-scroll data-scroll-speed="0.05" />
+      <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-primary/20 rounded-full blur-[100px] pointer-events-none" data-scroll data-scroll-speed="-0.05" />
 
-      <div className="container mx-auto px-4 md:px-6 relative z-10 grid md:grid-cols-2 gap-16 items-center">
-        <div>
-          <div className="hero-badge inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-secondary text-xs font-bold uppercase tracking-widest mb-8 backdrop-blur-sm">
-            <GraduationCap size={14} />
-            Penerimaan Mahasiswa Baru 2026
-          </div>
-          <h1 className="hero-title text-4xl md:text-8xl font-black text-white leading-none mb-8 tracking-tighter text-balance">
-            {headline}
-          </h1>
-          <p className="hero-desc text-base md:text-lg text-white/70 mb-10 max-w-lg leading-relaxed font-medium">
-            {subheadline}
-          </p>
-          <div className="hero-btns flex flex-col sm:flex-row gap-5">
-            <Link
-              href={ctaUrl || "#"}
-              className="bg-secondary text-primary-foreground px-10 py-4 md:py-5 rounded-full font-black text-lg hover:scale-105 transition-all shadow-2xl shadow-secondary/20 flex items-center justify-center gap-2"
-            >
-              {ctaLabel || "Daftar Sekarang"}
-            </Link>
-            <Link
-              href="/akademik"
-              className="bg-white/5 backdrop-blur-md border border-white/10 text-white px-10 py-4 md:py-5 rounded-full font-bold text-lg hover:bg-white/10 transition-all text-center"
-            >
-              Program Studi
-            </Link>
-          </div>
-        </div>
+      <Carousel
+        setApi={setApi}
+        plugins={[Autoplay({ delay: 6000, stopOnInteraction: true })]}
+        opts={{ loop: true }}
+        className="w-full relative z-10 group/hero"
+      >
+        
+        <CarouselContent className="relative z-10">
+          {slides.map((slide, index) => (
+            <CarouselItem key={index} className="basis-full">
+              <div className="container mx-auto px-4 md:px-6 relative z-10 grid md:grid-cols-2 gap-12 md:gap-16 items-center w-full min-h-[70vh] py-12">
+                <div data-scroll data-scroll-speed="0.1">
+                  <div className="hero-badge inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-secondary text-xs font-bold uppercase tracking-widest mb-8 backdrop-blur-sm">
+                    {slide.type === "static" ? <GraduationCap size={14} /> : <ArrowRight size={14} />}
+                    {slide.date}
+                  </div>
+                  <h1 className="hero-title text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-black text-white leading-tight mb-8 tracking-tighter text-balance">
+                    {slide.title}
+                  </h1>
+                  <p className="hero-desc text-base md:text-lg text-white/70 mb-10 max-w-lg leading-relaxed font-medium line-clamp-3">
+                    {slide.desc}
+                  </p>
+                  <div className="hero-btns flex flex-col sm:flex-row gap-5">
+                    <Link
+                      href={slide.url}
+                      className="bg-secondary text-primary-foreground px-10 py-4 md:py-5 rounded-full font-black text-lg hover:scale-105 transition-all shadow-2xl shadow-secondary/20 flex items-center justify-center gap-2"
+                    >
+                      {slide.label}
+                    </Link>
+                    {slide.type === "static" && (
+                      <Link
+                        href="/akademik"
+                        className="bg-white/5 backdrop-blur-md border border-white/10 text-white px-10 py-4 md:py-5 rounded-full font-bold text-lg hover:bg-white/10 transition-all text-center"
+                      >
+                        Program Studi
+                      </Link>
+                    )}
+                  </div>
+                </div>
 
-        {/* Premium Visual Composition */}
-        <div className="hero-visual relative aspect-square group">
-          <div className="absolute inset-0 bg-secondary/5 rounded-[4rem] rotate-3 scale-105 blur-2xl group-hover:rotate-6 transition-transform duration-700" />
-          <div className="relative h-full w-full rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl">
-            <Image
-              src="/assets/hero-premium.png"
-              alt="STTPU Campus Architecture"
-              fill
-              className="object-cover"
-              priority
-            />
-            <div className="absolute inset-0 bg-linear-to-t from-primary/60 via-transparent to-transparent" />
-          </div>
+                {/* Premium Visual Composition */}
+                <div className="hero-visual relative aspect-square group w-full" data-scroll data-scroll-speed="-0.05">
+                  <div className="absolute inset-0 bg-secondary/5 rounded-4xl sm:rounded-[4rem] rotate-3 scale-105 blur-2xl group-hover:rotate-6 transition-transform duration-700" />
+                  <div className="relative h-full w-full rounded-4xl sm:rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl">
+                    <Image
+                      src={slide.image}
+                      alt={slide.title}
+                      fill
+                      className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                      priority={index === 0}
+                    />
+                    <div className="absolute inset-0 bg-linear-to-t from-primary/60 via-transparent to-transparent opacity-80" />
+                    
+                    {slide.type === "news" && (
+                      <div className="absolute bottom-8 left-8 right-8">
+                        <div className="px-4 py-2 bg-black/30 backdrop-blur-md rounded-2xl border border-white/10 inline-block">
+                           <p className="text-secondary font-bold text-sm">{slide.category}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        
+        <div className="absolute inset-y-0 left-4 md:left-8 lg:left-12 flex items-center z-50 pointer-events-none">
+          <CarouselPrevious className="relative translate-x-0 translate-y-0 left-0 right-0 top-0 bottom-0 pointer-events-auto bg-white/10 hover:bg-white/20 hover:text-white text-white border-white/20 h-14 w-14 rounded-full backdrop-blur-md opacity-0 group-hover/hero:opacity-100 transition-all duration-300 shadow-2xl hover:scale-110" />
         </div>
-      </div>
+        
+        <div className="absolute inset-y-0 right-4 md:right-8 lg:right-12 flex items-center z-50 pointer-events-none">
+          <CarouselNext className="relative translate-x-0 translate-y-0 left-0 right-0 top-0 bottom-0 pointer-events-auto bg-white/10 hover:bg-white/20 hover:text-white text-white border-white/20 h-14 w-14 rounded-full backdrop-blur-md opacity-0 group-hover/hero:opacity-100 transition-all duration-300 shadow-2xl hover:scale-110" />
+        </div>
+      </Carousel>
     </section>
   );
 }
@@ -659,10 +826,10 @@ export function EventCard({ event }: { event: WithId<Event> }) {
 
 export function StatsSection() {
   const stats: { label: string; value: string; icon: LucideIcon }[] = [
-    { label: "Mahasiswa Aktif", value: "2,500+", icon: GraduationCap },
-    { label: "Alumni Terserap", value: "98%", icon: HardHat },
-    { label: "Program Studi", value: "11", icon: Menu },
-    { label: "Laboratorium", value: "25", icon: MapPin },
+    { label: "Mahasiswa Aktif", value: "300+", icon: GraduationCap },
+    { label: "Alumni Terserap", value: "85%", icon: HardHat },
+    { label: "Program Studi", value: "3", icon: Menu },
+    { label: "Laboratorium", value: "5", icon: MapPin },
   ];
 
   return (
@@ -694,10 +861,31 @@ export function Footer({
   globalConfig: WithId<GlobalConfig>;
 }) {
   return (
-    <footer className="bg-primary text-white pt-20 pb-10 overflow-hidden relative">
-      <div className="absolute top-0 left-0 w-full h-1 bg-secondary" />
+    <footer className="relative text-white pt-20 pb-10 overflow-hidden bg-[#041a2f]">
+      {/* 1. Underlying smooth dark blue gradient base */}
+      <div className="absolute inset-0 bg-linear-to-br from-[#0A4E9A] via-[#0b3b60] to-[#041a2f] z-0" />
 
-      <div className="container mx-auto px-4 md:px-6">
+      {/* 2. Transparent faint image overlay (watermark effect) */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        <Image
+          src="/assets/hero-premium.png"
+          fill
+          alt="Footer Background Texture"
+          className="object-cover opacity-10 mix-blend-luminosity"
+        />
+        {/* Soften the image bottom into the dark base */}
+        <div className="absolute inset-0 bg-linear-to-b from-transparent to-[#041a2f]/90" />
+      </div>
+
+      {/* 3. Ambient Orbs & Grid (Smoothed out intensity) */}
+      <div className="absolute inset-0 blueprint-grid opacity-10 pointer-events-none z-0" />
+      <div className="absolute -bottom-40 -right-40 w-[500px] h-[500px] bg-secondary/10 rounded-full blur-[100px] pointer-events-none z-0" />
+      <div className="absolute top-10 -left-20 w-[400px] h-[400px] bg-blue-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
+
+      {/* 4. Top Accent Line */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-secondary shadow-[0_0_30px_rgba(241,180,52,0.5)] z-10" />
+
+      <div className="container mx-auto px-4 md:px-6 relative z-10">
         <div className="grid md:grid-cols-4 gap-12 mb-16">
           <div className="md:col-span-2">
             <div className="flex items-center gap-4 mb-6">
@@ -810,21 +998,20 @@ export function Footer({
           </div>
         </div>
 
-        <div className="border-t border-white/5 pt-10 flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-white/40 text-xs">
-            © {new Date().getFullYear()} {globalConfig.site_name}. All Rights
-            Reserved.
+        <div className="mt-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-8 py-5 flex flex-col md:flex-row justify-between items-center gap-6 shadow-[0_10px_40px_rgba(0,0,0,0.2)]">
+          <p className="text-white/70 text-sm font-medium">
+            © {new Date().getFullYear()} {globalConfig.site_name}. Hak Cipta Dilindungi.
           </p>
           <div className="flex gap-6">
             <Link
               href="/privacy"
-              className="text-white/40 hover:text-white text-xs transition-colors"
+              className="text-white/60 hover:text-white text-sm font-semibold transition-colors"
             >
               Kebijakan Privasi
             </Link>
             <Link
               href="/terms"
-              className="text-white/40 hover:text-white text-xs transition-colors"
+              className="text-white/60 hover:text-white text-sm font-semibold transition-colors"
             >
               Syarat & Ketentuan
             </Link>
