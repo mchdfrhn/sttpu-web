@@ -205,6 +205,27 @@ export interface GlobalConfig {
   address_text: string | null;
   maps_url: string | null;
   social_links: SharedLink[];
+  contact: SharedContact | null;
+}
+
+export interface StatItem {
+  id: number;
+  label: string;
+  value: string;
+  icon_name: string | null;
+}
+
+export interface CampusStatistic {
+  stats: StatItem[];
+}
+
+export interface NavigationMenu {
+  documentId: string;
+  label: string;
+  url: string;
+  order: number;
+  is_highlighted: boolean;
+  children?: NavigationMenu[];
 }
 
 export interface AdmissionInfo {
@@ -427,6 +448,30 @@ export const getAdmissionInfo = () =>
 export const getHeroSection = () =>
   fetchSingle<HeroSection>('/hero-section', {
     populate: { cta_button: true },
+  });
+
+export const getCampusStatistic = () =>
+  fetchSingle<CampusStatistic>('/campus-statistic', {
+    populate: { stats: true },
+  });
+
+export const getNavigationMenus = (params?: StrapiQueryParams) =>
+  fetchMany<NavigationMenu>('/navigation-menus', {
+    sort: 'order:asc',
+    filters: { parent: { $null: true } },
+    ...params,
+    // In Strapi v5, getting nested relations requires explicit population.
+    // For navigation, we populate up to 3 levels deep: children -> children -> children
+    populate: {
+      children: {
+        populate: {
+          children: {
+            populate: '*'
+          }
+        }
+      }
+    },
+    ...params,
   });
 
 // ─────────────────────────────────────────────────────────────

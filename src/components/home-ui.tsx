@@ -32,6 +32,8 @@ import {
   GlobalConfig,
   getStrapiMedia,
   WithId,
+  NavigationMenu,
+  StatItem,
 } from "@/app/lib/strapi";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -50,8 +52,10 @@ interface NavLinkItem {
 
 export function Navbar({
   globalConfig,
+  navItems = [],
 }: {
   globalConfig: WithId<GlobalConfig>;
+  navItems?: NavigationMenu[];
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -77,145 +81,20 @@ export function Navbar({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navLinks = [
-    { label: "Beranda", url: "/" },
-    { label: "Tentang", url: "/tentang" },
-    {
-      label: "Akademik",
-      url: "#",
-      subLinks: [
-        {
-          label: "SIAKAD",
-          url: "#",
-          subLinks: [
-            {
-              label: "Portal Dosen",
-              url: "https://sttsaptataruna.portaldosen.siakad.tech/",
-            },
-            {
-              label: "Portal Mahasiswa",
-              url: "https://mhs.sttpu.civitas.id/",
-            },
-            {
-              label: "Portal Orang Tua",
-              url: "https://ortu.sttpu.civitas.id/",
-            },
-            {
-              label: "Panduan SIAKAD",
-              url: "#",
-              subLinks: [
-                {
-                  label: "Panduan Dosen",
-                  url: "#",
-                },
-                {
-                  label: "Panduan Mahasiswa",
-                  url: "https://www.youtube.com/watch?v=WWsJ1KaBqCo&list=PL92IvqVb8kkidupuI2ctfwqM6es7C9o0v",
-                },
-                {
-                  label: "Panduan Orang Tua",
-                  url: "#",
-                },
-              ],
-            },
-          ],
-        },
-        {
-          label: "LMS",
-          url: "#",
-          subLinks: [
-            {
-              label: "Portal Dosen",
-              url: "https://sttpu.dosen.lms.civitas.id/",
-            },
-            {
-              label: "Portal Mahasiswa",
-              url: "https://sttpu.lms.civitas.id/",
-            },
-            {
-              label: "Panduan LMS",
-              url: "#",
-              subLinks: [
-                {
-                  label: "Panduan Dosen",
-                  url: "https://www.youtube.com/playlist?list=PLdgvBqqJqMZ9N_sqJoxvLQSWWZGYjUHbv",
-                },
-                {
-                  label: "Panduan Mahasiswa",
-                  url: "https://www.youtube.com/playlist?list=PLdgvBqqJqMZ-bAzNjP9KYE3u-1R_m_u0v",
-                },
-              ],
-            },
-          ],
-        },
-        {
-          label: "Pengajuan",
-          url: "https://app.sipekad.web.id/",
-        },
-      ],
-    },
-    {
-      label: "Program Studi",
-      url: "#",
-      subLinks: [
-        { label: "Teknik Sipil", url: "/prodi/teknik-sipil" },
-        { label: "Teknik Lingkungan", url: "/prodi/teknik-lingkungan" },
-        { label: "Teknik Informatika", url: "/prodi/teknik-informatika" },
-      ],
-    },
-    {
-      label: "LPPM",
-      url: "#",
-      subLinks: [
-        { label: "PKM", url: "/lppm/pkm" },
-        { label: "Publikasi", url: "/lppm/publikasi" },
-        { label: "Laporan", url: "/lppm/laporan" },
-      ],
-    },
-    {
-      label: "LPMI",
-      url: "#",
-      subLinks: [{ label: "Segera Hadir", url: "#" }],
-    },
-    {
-      label: "Fasilitas",
-      url: "#",
-      subLinks: [
-        { label: "Laboratorium", url: "/fasilitas/laboratorium" },
-        { label: "Perpustakaan", url: "/fasilitas/perpustakaan" },
-        { label: "Masjid", url: "/fasilitas/masjid" },
-        { label: "Kantin", url: "/fasilitas/kantin" },
-        { label: "Lainnya", url: "/fasilitas/lainnya" },
-      ],
-    },
-    {
-      label: "Berita",
-      url: "#",
-      subLinks: [
-        { label: "Kegiatan", url: "/berita/kegiatan" },
-        { label: "Akademik", url: "/berita/akademik" },
-        { label: "Pengumuman", url: "/berita/pengumuman" },
-        { label: "Lainnya", url: "/berita/lainnya" },
-      ],
-    },
-    {
-      label: "Download",
-      url: "#",
-      subLinks: [
-        { label: "Kalender Akademik", url: "/download/kalender-akademik" },
-        { label: "Formulir", url: "/download/formulir" },
-        { label: "Pedoman Akademik", url: "/download/pedoman-akademik" },
-        {
-          label: "Pedoman Kemahasiswaan",
-          url: "/download/pedoman-kemahasiswaan",
-        },
-      ],
-    },
-    {
-      label: "PMB 2026",
-      url: "https://sttsaptataruna.pmbonline.siakad.tech/",
-      is_highlighted: true,
-    },
+  const navLinks: NavLinkItem[] = navItems.length > 0 ? navItems.map((item) => ({
+    label: item.label,
+    url: item.url,
+    is_highlighted: item.is_highlighted,
+    subLinks: item.children && item.children.length > 0 ? item.children.map(child => ({
+      label: child.label,
+      url: child.url,
+      subLinks: child.children && child.children.length > 0 ? child.children.map(subChild => ({
+        label: subChild.label,
+        url: subChild.url,
+      })) : undefined,
+    })) : undefined,
+  })) : [
+    { label: "Beranda", url: "/" }
   ];
 
   return (
@@ -824,19 +703,34 @@ export function EventCard({ event }: { event: WithId<Event> }) {
   );
 }
 
-export function StatsSection() {
-  const stats: { label: string; value: string; icon: LucideIcon }[] = [
-    { label: "Mahasiswa Aktif", value: "300+", icon: GraduationCap },
-    { label: "Alumni Terserap", value: "85%", icon: HardHat },
-    { label: "Program Studi", value: "3", icon: Menu },
-    { label: "Laboratorium", value: "5", icon: MapPin },
+export function StatsSection({ stats = [] }: { stats?: StatItem[] }) {
+  const iconMap: Record<string, LucideIcon> = {
+    GraduationCap,
+    HardHat,
+    Menu,
+    MapPin,
+    Phone,
+    ArrowRight,
+  };
+
+  const getIcon = (name: string | null) => {
+    if (!name) return Menu;
+    return iconMap[name] || Menu;
+  };
+
+  const displayStats = stats.length > 0 ? stats.map(s => ({
+    label: s.label,
+    value: s.value,
+    icon: getIcon(s.icon_name)
+  })) : [
+    { label: "Loading Data", value: "-", icon: Menu }
   ];
 
   return (
     <div className="py-16 md:py-24 relative overflow-hidden">
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12 border border-border/30 rounded-3xl md:rounded-[3rem] p-6 md:p-12 bg-white/5 backdrop-blur-xl shadow-2xl">
-          {stats.map((stat, i) => (
+          {displayStats.map((stat, i) => (
             <div
               key={i}
               className="text-center group border-r border-border/10 last:border-0"
@@ -920,12 +814,14 @@ export function Footer({
                   </span>
                 </div>
               )}
-              <div className="flex items-center gap-3">
-                <Phone className="text-secondary shrink-0" size={20} />
-                <span className="text-sm text-white/80">
-                  02138851092 - 02138851109
-                </span>
-              </div>
+              {globalConfig.contact?.phone && (
+                <div className="flex items-center gap-3">
+                  <Phone className="text-secondary shrink-0" size={20} />
+                  <a href={`tel:${globalConfig.contact.phone.replace(/[\s-]/g, '')}`} className="text-sm text-white/80 hover:text-white transition-colors">
+                    {globalConfig.contact.phone} {globalConfig.contact.whatsapp && `(WA: ${globalConfig.contact.whatsapp})`}
+                  </a>
+                </div>
+              )}
             </div>
           </div>
 
