@@ -28,13 +28,13 @@ import Autoplay from "embla-carousel-autoplay";
 import {
   Faculty,
   News,
-  Event,
+  Event as CMSEvent,
   GlobalConfig,
-  getStrapiMedia,
   WithId,
   NavigationMenu,
   StatItem,
-} from "@/app/lib/strapi";
+} from "@/app/lib/cms-types";
+import { getMediaUrl } from "@/app/lib/cms-utils";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -438,8 +438,8 @@ export function Hero({
       desc: "Simak berita terbaru seputar STT Pekerjaan Umum langsung dari kanal informasi kami.",
       label: "Selengkapnya",
       url: `/berita/${item.slug}`,
-      image: getStrapiMedia(item.featured_image?.url) || "/assets/hero-premium.png",
-      date: new Date(item.publishedAt || item.createdAt).toLocaleDateString("id-ID", {
+      image: getMediaUrl(item.featured_image) || "/assets/hero-premium.png",
+      date: new Date(item.publishedAt || item.createdAt || "").toLocaleDateString("id-ID", {
         day: "numeric", month: "long", year: "numeric",
       }),
       category: item.categories && item.categories.length > 0 ? item.categories[0].name : "Kabar Kampus"
@@ -524,7 +524,7 @@ export function Hero({
                   <div className="relative h-full w-full rounded-4xl sm:rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl">
                     <Image
                       src={slide.image}
-                      alt={slide.title}
+                      alt={slide.title || "STTPU Hero Image"}
                       fill
                       className="object-cover transition-transform duration-1000 group-hover:scale-110"
                       priority={index === 0}
@@ -571,7 +571,7 @@ export function FacultyCard({ faculty }: { faculty: WithId<Faculty> }) {
       <div className="relative aspect-16/10 mb-8 rounded-2xl overflow-hidden border border-border/10">
         <Image
           src={getFacultyImage(faculty.slug)}
-          alt={faculty.name}
+          alt={faculty.name || "Faculty Image"}
           fill
           className="object-cover group-hover:scale-110 transition-transform duration-700"
         />
@@ -620,8 +620,8 @@ export function NewsCard({ news }: { news: WithId<News> }) {
       <div className="relative aspect-video overflow-hidden bg-muted/20">
         {news.featured_image ? (
           <Image
-            src={getStrapiMedia(news.featured_image.url) || ""}
-            alt={news.title}
+            src={getMediaUrl(news.featured_image) || ""}
+            alt={news.title || "News Image"}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-700"
           />
@@ -649,7 +649,7 @@ export function NewsCard({ news }: { news: WithId<News> }) {
       </div>
       <div className="p-8 flex flex-col grow">
         <span className="text-[10px] text-muted-foreground mb-4 font-black uppercase tracking-widest">
-          {new Date(news.publishedAt || news.createdAt).toLocaleDateString(
+          {new Date(news.publishedAt || news.createdAt || "").toLocaleDateString(
             "id-ID",
             { day: "numeric", month: "long", year: "numeric" },
           )}
@@ -668,7 +668,7 @@ export function NewsCard({ news }: { news: WithId<News> }) {
   );
 }
 
-export function EventCard({ event }: { event: WithId<Event> }) {
+export function EventCard({ event }: { event: WithId<CMSEvent> }) {
   const startDate = new Date(event.date_start);
   return (
     <div className="flex bg-card p-6 rounded-2xl border border-border hover:shadow-lg transition-all gap-6 items-start">

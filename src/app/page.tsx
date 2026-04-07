@@ -6,7 +6,7 @@ import {
   getAdmissionInfo,
   getCampusStatistic,
   getNavigationMenus,
-} from "@/app/lib/strapi";
+} from "@/app/lib/payload";
 import {
   Navbar,
   Hero,
@@ -50,7 +50,7 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar globalConfig={globalConfig} navItems={navItems} />
+      <Navbar globalConfig={globalConfig as any} navItems={navItems as any} />
 
       <main>
         <HomeAnimations>
@@ -59,7 +59,7 @@ export default async function Home() {
             subheadline={hero.subheadline}
             ctaLabel={hero.cta_button?.label}
             ctaUrl={hero.cta_button?.url}
-            news={featuredNews}
+            news={featuredNews as any}
           />
 
           <div className="stats-section">
@@ -67,7 +67,7 @@ export default async function Home() {
           </div>
 
           {/* Complex Grid News Section replacing Faculties */}
-          <NewsComplexGrid news={featuredNews} />
+          <NewsComplexGrid news={featuredNews as any} />
 
           {/* News & Updates Section */}
           <section className="py-24 bg-muted/30">
@@ -95,7 +95,7 @@ export default async function Home() {
                         key={news.id}
                         className="basis-[85%] md:basis-[45%] lg:basis-[30%]"
                       >
-                        <NewsCard news={news} />
+                        <NewsCard news={news as any} />
                       </CarouselItem>
                     ))}
                   </CarouselContent>
@@ -131,7 +131,7 @@ export default async function Home() {
 
                 <div className="flex flex-col gap-6">
                   {upcomingEvents.map((event) => (
-                    <EventCard key={event.id} event={event} />
+                    <EventCard key={event.id} event={event as any} />
                   ))}
                 </div>
 
@@ -157,7 +157,7 @@ export default async function Home() {
                   </p>
 
                   <div className="flex flex-col gap-4 mb-10">
-                    {admission.registration_steps?.map((step) => (
+                    {admission.registration_steps?.map((step: any) => (
                       <div
                         key={step.id}
                         className="flex items-center gap-3 bg-white/5 p-4 rounded-xl border border-white/10 hover:bg-white/10 transition-colors"
@@ -183,7 +183,7 @@ export default async function Home() {
         </HomeAnimations>
       </main>
 
-      <Footer globalConfig={globalConfig} />
+      <Footer globalConfig={globalConfig as any} />
     </div>
   );
 }

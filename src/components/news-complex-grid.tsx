@@ -7,7 +7,8 @@ import { ArrowUpRight, Calendar, Newspaper } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { News, WithId } from "@/app/lib/strapi";
+import { News, WithId } from "@/app/lib/cms-types";
+import { getMediaUrl } from "@/app/lib/cms-utils";
 
 // Pastikan untuk mendaftarkan ScrollTrigger agar Next.js tidak kehilangan orientasi
 if (typeof window !== "undefined") {
@@ -94,9 +95,9 @@ export function NewsComplexGrid({ news }: { news: WithId<News>[] }) {
                   src={
                     primaryNews.featured_image.url.startsWith("http")
                       ? primaryNews.featured_image.url
-                      : `${process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337"}${primaryNews.featured_image.url}`
+                      : getMediaUrl(primaryNews.featured_image) || "/assets/hero-premium.png"
                   }
-                  alt={primaryNews.title}
+                  alt={primaryNews.title || "Primary News Image"}
                   fill
                   className="object-cover transition-transform duration-1000 group-hover:scale-[1.03] -z-20 opacity-80 group-hover:opacity-100 mix-blend-luminosity"
                 />
@@ -165,9 +166,9 @@ export function NewsComplexGrid({ news }: { news: WithId<News>[] }) {
                       src={
                         item.featured_image.url.startsWith("http")
                           ? item.featured_image.url
-                          : `${process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337"}${item.featured_image.url}`
+                          : getMediaUrl(item.featured_image) || "/assets/hero-premium.png"
                       }
-                      alt={item.title}
+                      alt={item.title || "News Image"}
                       fill
                       className="object-cover transition-transform duration-700 group-hover:scale-110"
                     />
